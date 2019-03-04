@@ -7,6 +7,7 @@
  ****************************************************************/
 function getBookById(bookId, books) {
   // Your code goes here
+  return books.find(book => book.id === bookId)
 }
 
 /**************************************************************
@@ -17,8 +18,14 @@ function getBookById(bookId, books) {
  * - returns undefined if no matching author is found
  ****************************************************************/
 function getAuthorByName(authorName, authors) {
-  // Your code goes here
+  let author = authors.find(author => author['name'].toLocaleUpperCase() === authorName.toLocaleUpperCase())
+  if (author) {
+    return author;
+  } else {
+    return undefined;
+  }
 }
+
 
 /**************************************************************
  * bookCountsByAuthor(authors):
@@ -27,7 +34,14 @@ function getAuthorByName(authorName, authors) {
  *    [{ author: <NAME>, bookCount: <NUMBER_OF_BOOKS> }]
  ****************************************************************/
 function bookCountsByAuthor(authors) {
-  // Your code goes here
+  let formattedAuthors = authors.map(author => {
+    let newAuthor = {
+      author: author.name,
+      bookCount: author.books.length
+    }
+    return newAuthor;
+  });
+  return formattedAuthors;
 }
 
 /**************************************************************
@@ -39,9 +53,13 @@ function bookCountsByAuthor(authors) {
  ****************************************************************/
 function booksByColor(books) {
   const colors = {};
-
-  // Your code goes here
-
+  books.forEach(book => {
+    const color = book.color;
+    if (!colors[color]) {
+      colors[color] = [];
+    }
+    colors[color].push(book.title);
+  });
   return colors;
 }
 
@@ -54,8 +72,12 @@ function booksByColor(books) {
  *    ["The Hitchhikers Guide", "The Meaning of Liff"]
  ****************************************************************/
 function titlesByAuthorName(authorName, authors, books) {
-  // Your code goes here
+  const author = getAuthorByName(authorName, authors);
+  if (!author) return [];
+  return author.books.map(book => getBookById(book, books).title);
+
 }
+
 
 /**************************************************************
  * mostProlificAuthor(authors):
@@ -65,7 +87,16 @@ function titlesByAuthorName(authorName, authors, books) {
  * Note: assume there will never be a tie
  ****************************************************************/
 function mostProlificAuthor(authors) {
-  // Your code goes here
+  let ProlificAuthor = authors[0];
+  authors.forEach(author => {
+    if (author.books.length > ProlificAuthor.books.length) {
+      ProlificAuthor = author;
+    }
+  });
+
+
+
+  return ProlificAuthor.name;
 }
 
 /**************************************************************
@@ -92,7 +123,17 @@ function mostProlificAuthor(authors) {
  * BONUS: REMOVE DUPLICATE BOOKS
  ****************************************************************/
 function relatedBooks(bookId, authors, books) {
-  // Your code goes here
+  const book = getBookById(bookId, books);
+  let titles = [];
+
+  book.authors.forEach(author => {
+    const bookTitles = titlesByAuthorName(author.name, authors, books);
+    // .filter(book => !titles.includes(book))
+    titles.push(...bookTitles);
+  })
+
+
+  return titles;
 }
 
 /**************************************************************
@@ -102,7 +143,25 @@ function relatedBooks(bookId, authors, books) {
  *   co-authored the greatest number of books
  ****************************************************************/
 function friendliestAuthor(authors) {
-  // Your code goes here
+  authors.forEach(author => {
+    author.coauthoringCount = 0;
+    authors.forEach(secondAuthor => {
+      if (author.name !== secondAuthor.name) {
+        const sharedBooks = secondAuthor.books.filter(book =>
+          author.books.includes(book)
+        );
+        author.coauthoringCount += sharedBooks.length;
+      }
+    });
+  });
+
+  let friendlyAuthor = authors[0];
+  authors.forEach(author => {
+    if (author.coauthoringCount > friendlyAuthor.coauthoringCount) {
+      friendlyAuthor = author;
+    }
+  })
+  return friendlyAuthor.name;
 }
 
 module.exports = {
